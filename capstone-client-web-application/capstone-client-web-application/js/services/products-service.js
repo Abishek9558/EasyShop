@@ -39,7 +39,7 @@ class ProductService {
     constructor() {
 
         //load list of photos into memory
-        axios.get("/images/products/photos.json")
+        axios.get("images/products/photos.json")
             .then(response => {
                 this.photos = response.data;
             });
@@ -97,6 +97,8 @@ class ProductService {
                  data.products = response.data;
 
                  data.products.forEach(product => {
+                 console.log(product
+                )
                      if(!this.hasPhoto(product.imageUrl))
                      {
                          product.imageUrl = "no-image.jpg";
