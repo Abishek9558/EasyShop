@@ -1,8 +1,8 @@
 package org.yearup.data.mysql;
 
 import org.springframework.stereotype.Component;
-import org.yearup.models.Profile;
 import org.yearup.data.ProfileDao;
+import org.yearup.models.Profile;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -19,9 +19,9 @@ public class MySqlProfileDao extends MySqlDaoBase implements ProfileDao
     public Profile create(Profile profile)
     {
         String sql = "INSERT INTO profiles (user_id, first_name, last_name, phone, email, address, city, state, zip) " +
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try(Connection connection = getConnection())
+        try (Connection connection = getConnection())
         {
             PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, profile.getUserId());
@@ -44,4 +44,64 @@ public class MySqlProfileDao extends MySqlDaoBase implements ProfileDao
         }
     }
 
+    @Override
+    public Profile getByUserId(int userId)
+    {
+        String sql = "SELECT * FROM profiles WHERE user_id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next())
+            {
+                Profile profile = new Profile();
+                profile.setUserId(userId);
+                profile.setFirstName(rs.getString("first_name"));
+                profile.setLastName(rs.getString("last_name"));
+                profile.setPhone(rs.getString("phone"));
+                profile.setEmail(rs.getString("email"));
+                profile.setAddress(rs.getString("address"));
+                profile.setCity(rs.getString("city"));
+                profile.setState(rs.getString("state"));
+                profile.setZip(rs.getString("zip"));
+                return profile;
+            }
+
+            return null;
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException("Failed to get profile by userId", e);
+        }
+    }
+
+    @Override
+    public void update(Profile profile)
+    {
+        String sql = "UPDATE profiles SET first_name = ?, last_name = ?, phone = ?, email = ?, address = ?, city = ?, state = ?, zip = ? " +
+                "WHERE user_id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql))
+        {
+            stmt.setString(1, profile.getFirstName());
+            stmt.setString(2, profile.getLastName());
+            stmt.setString(3, profile.getPhone());
+            stmt.setString(4, profile.getEmail());
+            stmt.setString(5, profile.getAddress());
+            stmt.setString(6, profile.getCity());
+            stmt.setString(7, profile.getState());
+            stmt.setString(8, profile.getZip());
+            stmt.setInt(9, profile.getUserId());
+
+            stmt.executeUpdate();
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException("Failed to update profile", e);
+        }
+    }
 }
